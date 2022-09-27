@@ -1,20 +1,20 @@
 from Cola import Cola
-escritorios = Cola()
-escritoriosactivos = Cola()
-clientes = Cola()
 class PuntoAtencion:
     def __init__(self, id, nombre, direccion):
         self.id = id
         self.nombre = nombre
         self.direccion = direccion
         self.siguiente = None
-    def agregarEscritorio(escritorio):
-        escritorios.insertar(escritorio)
-    def activarEscritorio(id):
-        escritoriofactivar = escritorios.extraerid(id)
+        self.escritorios = Cola()
+        self.escritoriosactivos = Cola()
+        self.clientes = Cola()
+    def agregarEscritorio(self, escritorio):
+        self.escritorios.insertar(escritorio)
+    def activarEscritorio(self, id):
+        escritoriofactivar = self.escritorios.extraerid(id)
         if(escritoriofactivar != None):
-            escritoriosactivos.insertar(escritoriofactivar)
+            self.escritoriosactivos.insertar(escritoriofactivar)
         else:
             return False
-    def agregarCliente(cliente):
-        clientes.insertar(cliente)
+    def agregarCliente(self,cliente):
+        self.clientes.insertar(cliente)

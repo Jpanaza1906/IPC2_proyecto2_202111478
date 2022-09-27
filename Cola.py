@@ -33,6 +33,15 @@ class Cola:
             del temp
         else:
             print("No hay items pendientes.")
+    def getlen(self):
+        cont = 1
+        if self.primero != None:
+            temp = self.primero
+            while temp.siguiente != None:
+                cont += 1
+                temp = temp.siguiente
+            return cont            
+        pass
     """def get_tiempoespera(self):
         temp = self.primero
         tiempot = temp.tiempo
