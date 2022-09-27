@@ -122,7 +122,9 @@ def configurar_empresa(idempresa):
     wpuntos.title("Puntos")
     wpuntos.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
     wpuntos.grab_set()
-    wpuntos.resizable(False, False)
+    wpuntos.resizable(False, False)    
+    empresa = colaempresas.extraerid(idempresa)
+    
 
 # VENTANA PRINCIPAL
 ###
