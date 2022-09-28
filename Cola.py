@@ -20,11 +20,13 @@ class Cola:
     def extraerid(self, id):
         if self.primero != None:
             temp = self.primero
-            while temp.siguiente != None:
+            if temp.id == id:
+                return temp
+            while temp.siguiente != None:                
+                temp = temp.siguiente
                 if temp.id == id:
                     return temp
-                temp = temp.siguiente
-        pass
+        return False
     def extraer(self):
         temp = self.primero
         if self.primero != None:
@@ -40,7 +42,9 @@ class Cola:
             while temp.siguiente != None:
                 cont += 1
                 temp = temp.siguiente
-            return cont            
+            return cont
+        else:
+            return 0     
         pass
     """def get_tiempoespera(self):
         temp = self.primero

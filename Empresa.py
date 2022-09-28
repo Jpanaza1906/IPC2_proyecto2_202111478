@@ -8,6 +8,12 @@ class Empresa:
         self.puntosatencion = Cola()
         self.transacciones = Cola()
     def agregarPuntos(self, puntoatencion):
-        self.puntosatencion.insertar(puntoatencion)
+        if (self.puntosatencion.extraerid(puntoatencion.id) == False):
+            self.puntosatencion.insertar(puntoatencion)
+        else:
+            return False
     def agregarTransaccion(self, transaccion):
-        self.transacciones.insertar(transaccion)
+        if (self.transacciones.extraerid(transaccion.id) == False):
+            self.transacciones.insertar(transaccion)
+        else:
+            return False

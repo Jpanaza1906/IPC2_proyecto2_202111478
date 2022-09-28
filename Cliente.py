@@ -3,7 +3,7 @@ from Empresa import transacciones
 transaccionespendientes = Cola()
 class Cliente:
     def __init__(self, dpi, nombre):
-        self.dpi = dpi
+        self.id = dpi
         self.nombre = nombre
         self.siguiente = None
     def agregarTransaccion(id, cantidad):

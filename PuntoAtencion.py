@@ -9,12 +9,20 @@ class PuntoAtencion:
         self.escritoriosactivos = Cola()
         self.clientes = Cola()
     def agregarEscritorio(self, escritorio):
-        self.escritorios.insertar(escritorio)
-    def activarEscritorio(self, id):
-        escritoriofactivar = self.escritorios.extraerid(id)
-        if(escritoriofactivar != None):
-            self.escritoriosactivos.insertar(escritoriofactivar)
+        if(self.escritorios.extraerid(escritorio.id) == False):
+            self.escritorios.insertar(escritorio)
         else:
             return False
+    def activarEscritorio(self, escritorio):
+        self.escritoriosactivos.insertar(escritorio)
+    def desactivarEscritorio(self):
+        escritorio = self.escritoriosactivos.extraer()
+        if(escritorio != None):
+            escritoriofdesactivar = self.escritorios.extraerid(escritorio.id)
+            escritoriofdesactivar.estado = False
+            
     def agregarCliente(self,cliente):
-        self.clientes.insertar(cliente)
+        if(self.clientes.extraerid(cliente.id) == False):
+            self.clientes.insertar(cliente)
+        else:
+            return False
