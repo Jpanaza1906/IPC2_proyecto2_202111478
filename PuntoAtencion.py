@@ -20,6 +20,8 @@ class PuntoAtencion:
         if(escritorio != None):
             escritoriofdesactivar = self.escritorios.extraerid(escritorio.id)
             escritoriofdesactivar.estado = False
+            return True
+        return False
             
     def agregarCliente(self,cliente):
         if(self.clientes.extraerid(cliente.id) == False):

@@ -5,7 +5,6 @@ Programación Orientada a Objetos
 Introducción a la programación 2
 """
 import copy
-from enum import Flag
 from functools import partial
 import tkinter as tk
 from tkinter import DISABLED, NORMAL, Toplevel
@@ -21,7 +20,10 @@ from Empresa import Empresa
 from PuntoAtencion import PuntoAtencion
 from Escritorio import Escritorio
 from Transaccion import Transaccion
+from Cliente import Cliente
+from Config import Config
 colaempresas = Cola()
+colaconfiguracion = Cola()
 root = tk.Tk()
 root.title('FIUSAC')
 root.resizable(False, False)
@@ -41,14 +43,17 @@ cargar = True
 #VENTANA PARA MOSTRAR EMPRESAS
 def cargar_archivo():
     global cargar
-    if(cargar == True):
+    if(cargar == True or cargar == False):
         filetypes = (('Archivos XML', '*.xml'), ('Todos los archivos', '*.*'))
         filename = fd.askopenfilename(
             title='Open a file',
             initialdir='/',
             filetypes=filetypes)
-        if filename == "":
-            messagebox.showwarning("Advertencia", "No se seleccionó ningún archivo")            
+        if filename == "":            
+            if(cargar == False):
+                mostrar_empresas()
+            else:
+                messagebox.showwarning("Advertencia", "No se seleccionó ningún archivo")         
         else:
             doc = minidom.parse(filename)
             empresas = doc.getElementsByTagName("empresa")
@@ -146,8 +151,276 @@ def mostrar_empresas():
         ipady=10,
         expand=True
     )
-    boton.place(x=240, y=300, width=150, height=50)     
+    boton.place(x=120, y=300, width=150, height=50) 
+    boton1 = tk.Button(
+        wempresas,
+        bg="#8FA0AC",
+        font=myFont,
+        text="Manejar pruebas",
+        command=partial(prueba_inicial,None)
+    )
+    boton1.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton1.place(x=340, y=300, width=150, height=50)    
     colaempresas = colaempresatemp
+    if(colaempresas.getlen() == 0):
+        boton1['state'] = DISABLED
+    else:
+        boton1['state'] = NORMAL
+def prueba_inicial(ventana):
+    filetypes = (('Archivos XML', '*.xml'), ('Todos los archivos', '*.*'))
+    filename = fd.askopenfilename(
+        title='Open a file',
+        initialdir='/',
+        filetypes=filetypes)
+    if filename == "":
+        messagebox.showwarning("Advertencia", "No se seleccionó ningún archivo")            
+    else:
+        doc = minidom.parse(filename)
+        configs = doc.getElementsByTagName("configInicial")
+        for config in configs:
+            #GUARDAR LA CONFIGURACION
+            id = config.getAttribute("id")
+            if (colaconfiguracion.extraerid(id) == False):
+                idempresa = config.getAttribute("idEmpresa")
+                idpunto = config.getAttribute("idPunto")
+                #ACTIVAR LOS ESCRITORIOS
+                escritoriosactivos = config.getElementsByTagName("escritorio")
+                empresa = colaempresas.extraerid(idempresa)
+                punto = empresa.puntosatencion.extraerid(idpunto)
+                #objeto config
+                nconfig = Config(id,idempresa,idpunto,empresa.nombre,punto.nombre)
+                colaconfiguracion.insertar(nconfig)
+                for escritorioa in escritoriosactivos:
+                    idescritorio = escritorioa.getAttribute("idEscritorio")
+                    nescri = punto.escritorios.extraerid(idescritorio)
+                    configurar_escritorios(nescri,punto,None)
+                    pass
+                #GUARDAR CLIENTES
+                clientes = config.getElementsByTagName("cliente")
+                for cliente in clientes:
+                    idcliente = cliente.getAttribute("dpi")
+                    nombre = cliente.getElementsByTagName("nombre")[0].firstChild.data
+                    ncliente = Cliente(idcliente,nombre)
+                    punto.agregarCliente(ncliente)
+                    #GUARDAR TRANSACCIONES
+                    transacciones = cliente.getElementsByTagName("transaccion")
+                    for transaccion in transacciones:
+                        idtransaccion = transaccion.getAttribute("idTransaccion")
+                        cantidad = transaccion.getAttribute("cantidad")
+                        ncliente.agregarTransaccion(idtransaccion,cantidad,empresa)   
+        if(ventana != None):
+            ventana.destroy()
+        mostrar_pruebas()
+def mostrar_pruebas():
+    global colaconfiguracion
+    wconfig = Toplevel(root)
+    wconfig.title("Configuraciones")
+    wconfig.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wconfig.grab_set()
+    wconfig.resizable(False, False)
+    label = tk.Label(wconfig, text='ELIJA UN PUNTO PARA LA PRUEBA',font=("Britannic Bold",18))
+    label.pack()
+    label.place(x=150, y=30)
+    cont = 0
+    posx = 0
+    posy = 0
+    nconfigs = colaconfiguracion.getlen()
+    colaconftemp = Cola()
+    for i in range(0,nconfigs,1):
+        nconfig = colaconfiguracion.extraer()
+        nconfig.siguiente = None
+        colaconftemp.insertar(nconfig)
+        boton = tk.Button(
+            wconfig,
+            bg="#8FA0AC",
+            font=myFont,
+            text=nconfig.nempresa + "-" + nconfig.npunto,
+            command=partial(realizar_prueba,nconfig)
+        )
+        boton.pack(
+            ipadx=10,
+            ipady=10,
+            expand=True
+        )
+        boton.place(x=50 + posx, y=100 + posy, width=250, height=50)                
+        cont+=1
+        posx += 260
+        if(cont == 2 or cont == 4 or cont == 6):
+            posy += 60
+            posx = 0   
+    boton = tk.Button(
+        wconfig,
+        bg="#8FA0AC",
+        font=myFont,
+        text="CARGAR PRUEBA",
+        command=partial(prueba_inicial,wconfig)
+    )
+    boton.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton.place(x=230, y=300, width=150, height=50)   
+    colaconfiguracion = colaconftemp
+    pass
+def realizar_prueba(prueba):
+    #CONFIGURACION VENTANA
+    wprueba = Toplevel(root)
+    wprueba.title("Pruebas")
+    wprueba.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wprueba.grab_set()
+    wprueba.resizable(False,False)    
+    w = Canvas(wprueba,width=600,height=400)
+    w.create_rectangle(10,30,400,330, outline="red")
+    w.create_rectangle(10,30,400,60, outline="red")
+    w.create_rectangle(410,30,590,330, outline="red")
+    w.create_rectangle(410,30,590,60, outline="red")
+    w.pack()
+    label = tk.Label(wprueba, text=prueba.nempresa + " - " + prueba.npunto,font=("Britannic Bold",15))
+    label.pack()
+    label.place(x=135, y=0)
+    label12 = tk.Label(wprueba, text="ESCRITORIOS ACTIVOS:",font=("Britannic Bold",11))
+    label12.pack()
+    label12.place(x=12, y=35)
+    label1 = tk.Label(wprueba, text="ES TU TURNO:",font=("Britannic Bold",11))
+    label1.pack()
+    label1.place(x=12, y=62)
+    label2 = tk.Label(wprueba, text="EN ESPERA:",font=("Britannic Bold",11))
+    label2.pack()
+    label2.place(x=412, y=35)
+    #CREACION VARIABLES
+    empresa = colaempresas.extraerid(prueba.idempresa)
+    punto = empresa.puntosatencion.extraerid(prueba.idpunto)
+    numescritoriosactivos = punto.escritoriosactivos.getlen()
+    #ESCRITORIOS ACTIVOS VENTANA
+    label3 = tk.Label(wprueba, text=numescritoriosactivos,font=("Britannic Bold",11))
+    label3.pack()
+    label3.place(x=175, y=35)
+    #CLIENTES EN ESPERA VENTANA
+    numclientes = punto.clientes.getlen()
+    colaclientestemp = Cola()
+    posy = 0
+    for i in range(0,numclientes,1):
+        ncliente = punto.clientes.extraer()
+        ncliente.siguiente = None
+        colaclientestemp.insertar(ncliente)
+        labelc = tk.Label(wprueba, text="- "+ncliente.nombre,font=("Britannic Bold",11))
+        labelc.pack()
+        labelc.place(x=412, y=62 + posy)
+        posy += 20
+        pass
+    punto.clientes = colaclientestemp
+    pass
+    #BOTONES
+    boton0 = tk.Button(
+        wprueba,
+        bg="#8FA0AC",
+        font=myFont,
+        text="RECARGAR",
+        command=partial(recargar,prueba,wprueba)
+    )
+    boton0.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton0.place(x=500, y=2, width=97, height=20)
+    boton = tk.Button(
+        wprueba,
+        bg="#8FA0AC",
+        font=myFont,
+        text="ATENDER\nCLIENTE",
+        command=partial(atender_cliente,punto,wprueba)
+    )
+    boton.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton.place(x=1, y=345, width=97, height=50)
+    boton1 = tk.Button(
+        wprueba,
+        bg="#8FA0AC",
+        font=myFont,
+        text="SIMULAR\nATENCION",
+        command=partial(simular,punto,wprueba)
+    )
+    boton1.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton1.place(x=101, y=345, width=97, height=50)
+    boton2 = tk.Button(
+        wprueba,
+        bg="#8FA0AC",   
+        font=myFont,     
+        text="AGREGAR\nCLIENTE",
+        command=partial(agregar_cliente,punto,wprueba)
+    )
+    boton2.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton2.place(x=201, y=345, width=97, height=50)
+    boton3 = tk.Button(
+        wprueba,
+        bg="#8FA0AC",   
+        font=myFont,     
+        text="VER INFO.\nPUNTO",
+        command=partial(ver_punto,punto)
+    )
+    boton3.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton3.place(x=301, y=345, width=97, height=50)
+    boton4 = tk.Button(
+        wprueba,
+        bg="#8FA0AC",   
+        font=myFont,     
+        text="VER INFO.\nESCRITORIOS",
+        command=partial(ver_escritorios,punto)
+    )
+    boton4.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton4.place(x=401, y=345, width=97, height=50)
+    boton4 = tk.Button(
+        wprueba,
+        bg="#8FA0AC",   
+        font=myFont,     
+        text="MANEJAR\nESCRITORIOS",
+        command=partial(configurar_puntos,punto)
+    )
+    boton4.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton4.place(x=501, y=345, width=97, height=50)
+def recargar(prueba, ventana):
+    ventana.destroy()
+    realizar_prueba(prueba)
+def atender_cliente(punto, ventana):
+    pass
+def simular(punto, ventana):
+    pass
+def agregar_cliente(punto,ventana):
+    pass
+def ver_punto(punto):
+    pass
+def ver_escritorios(punto):
+    pass
+
 def configurar_empresa(empresa):
     wpuntos = Toplevel(root)
     wpuntos.title("Puntos")
@@ -248,7 +521,7 @@ def configurar_puntos(punto):
             boton = tk.Button(
                 wescritorios,
                 font=myFont,
-                text=nescritorio.nombreEncargado,
+                text=nescritorio.id + "-"+ nescritorio.nombreEncargado,
                 command=partial(configurar_escritorios,nescritorio,punto,wescritorios)
             )
             boton.pack(
@@ -296,18 +569,20 @@ def configurar_puntos(punto):
     pass
 def configurar_escritorios(escritorio,punto,ventana):    
     if escritorio.estado == False:
-        ventana.destroy()
         escritorio.estado = True
         escritorion = copy.deepcopy(escritorio)
         escritorion.siguiente = None
-        punto.activarEscritorio(escritorion)
-        configurar_puntos(punto)
+        punto.activarEscritorio(escritorion)        
+        if ventana != None:
+            ventana.destroy()
+            configurar_puntos(punto)
 
     pass
-def desactivar_escritorios(punto,ventana):
-    ventana.destroy()
-    punto.desactivarEscritorio()
-    configurar_puntos(punto)
+def desactivar_escritorios(punto,ventana):    
+    oper = punto.desactivarEscritorio()
+    if(oper == True):
+        ventana.destroy()
+        configurar_puntos(punto)    
     pass
 def crear_empresas(ventana):
     wcreare = Toplevel(root)
@@ -559,13 +834,22 @@ def ver_transacciones(empresa):
                 posx = 0    
         empresa.transacciones = colatranstemp
     pass
+def limpiar():
+    global colaempresas
+    global colaconfiguracion
+    global cargar
+    colaconfiguracion = Cola()
+    colaempresas = Cola()
+    cargar = True
+    messagebox.showinfo("INFORMACION","Se limpió el sistema exitosamente")
+    pass
 # VENTANA PRINCIPAL
 ###
 carga_button = tk.Button(
     root,
     bg="#8FA0AC",
     font=myFont,
-    text="Cargar empresas",
+    text="Manejar empresas",
     command=cargar_archivo
 )
 carga_button.pack(
@@ -574,7 +858,19 @@ carga_button.pack(
     expand=True
 )
 carga_button.place(x=240, y=160, width=150, height=80)
-
+limpiar_button = tk.Button(
+    root,
+    bg="#8FA0AC",
+    font=myFont,
+    text="Limpiar sistema",
+    command=limpiar,
+)
+limpiar_button.pack(
+    ipadx=5,
+    ipady=5,
+    expand=True
+)
+limpiar_button.place(x=430, y=330, width=150, height=50)
 salir_button = tk.Button(
     root,
     bg="#8FA0AC",
