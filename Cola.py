@@ -17,6 +17,8 @@ class Cola:
             while(temp.siguiente != None):
                 temp = temp.siguiente
             temp.siguiente = item
+    def cabeza(self):
+        return self.primero
     def extraerid(self, id):
         if self.primero != None:
             temp = self.primero

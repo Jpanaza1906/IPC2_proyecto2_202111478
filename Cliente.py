@@ -1,6 +1,5 @@
 import copy
 from Cola import Cola
-from Transaccion import Transaccion
 class Cliente:
     def __init__(self, dpi, nombre):
         self.id = dpi
@@ -15,5 +14,15 @@ class Cliente:
             self.transaccionespendiente.insertar(temptrans)
         else:
             return False
-            
+    def tiempoTrans(self):
+        cabezatrans = self.transaccionespendiente.cabeza()
+        if(cabezatrans != None):
+            numtrans = self.transaccionespendiente.getlen()
+            total = 0
+            for i in range(0,numtrans,1):
+                total += (int(cabezatrans.minutos)*int(cabezatrans.cantidad))
+                cabezatrans = cabezatrans.siguiente
+            return total
+        else:
+            return None
         

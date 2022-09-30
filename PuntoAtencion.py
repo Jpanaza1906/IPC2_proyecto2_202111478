@@ -7,6 +7,7 @@ class PuntoAtencion:
         self.siguiente = None
         self.escritorios = Cola()
         self.escritoriosactivos = Cola()
+        self.historialclientes = Cola()
         self.clientes = Cola()
     def agregarEscritorio(self, escritorio):
         if(self.escritorios.extraerid(escritorio.id) == False):
@@ -28,3 +29,33 @@ class PuntoAtencion:
             self.clientes.insertar(cliente)
         else:
             return False
+    def atenderCliente(self):
+        if(self.clientes.primero != None):
+            clienteatendido = self.clientes.extraer()
+            clienteatendido.siguiente = None
+            self.historialclientes.insertar(clienteatendido)
+            return clienteatendido
+        return None
+    def tiempoclientest(self):
+        cabezaclientes = self.clientes.cabeza()
+        total = 0
+        if(cabezaclientes != None):
+            numclientes = self.clientes.getlen()
+            for i in range(0,numclientes,1):
+                total += cabezaclientes.tiempoTrans()
+                cabezaclientes = cabezaclientes.siguiente
+        return total
+    def tiempopromedio(self):
+        cabezaescritorio = self.escritorios.cabeza()
+        promedio = 0
+        if(cabezaescritorio != None):
+            numescritorios = self.escritorios.getlen()
+            total = 0
+            contador = 0
+            for i in range(0,numescritorios,1):
+                tiempoe = cabezaescritorio.tiempoPromedio()
+                if(tiempoe != None):
+                    total += tiempoe
+                    contador += 1
+            promedio = total/contador
+        return promedio

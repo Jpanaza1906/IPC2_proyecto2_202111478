@@ -22,8 +22,10 @@ from Escritorio import Escritorio
 from Transaccion import Transaccion
 from Cliente import Cliente
 from Config import Config
+from Turno import Turno
 colaempresas = Cola()
 colaconfiguracion = Cola()
+colaturnos = Cola()
 root = tk.Tk()
 root.title('FIUSAC')
 root.resizable(False, False)
@@ -179,6 +181,7 @@ def prueba_inicial(ventana):
     if filename == "":
         messagebox.showwarning("Advertencia", "No se seleccionó ningún archivo")            
     else:
+        global colaturnos
         doc = minidom.parse(filename)
         configs = doc.getElementsByTagName("configInicial")
         for config in configs:
@@ -215,7 +218,9 @@ def prueba_inicial(ventana):
         if(ventana != None):
             ventana.destroy()
         mostrar_pruebas()
-def mostrar_pruebas():
+def mostrar_pruebas():    
+    global colaturnos
+    colaturnos = Cola()
     global colaconfiguracion
     wconfig = Toplevel(root)
     wconfig.title("Configuraciones")
@@ -239,7 +244,7 @@ def mostrar_pruebas():
             bg="#8FA0AC",
             font=myFont,
             text=nconfig.nempresa + "-" + nconfig.npunto,
-            command=partial(realizar_prueba,nconfig)
+            command=partial(realizar_prueba,nconfig,True)
         )
         boton.pack(
             ipadx=10,
@@ -267,7 +272,8 @@ def mostrar_pruebas():
     boton.place(x=230, y=300, width=150, height=50)   
     colaconfiguracion = colaconftemp
     pass
-def realizar_prueba(prueba):
+def realizar_prueba(prueba,simu):
+    global colaturnos
     #CONFIGURACION VENTANA
     wprueba = Toplevel(root)
     wprueba.title("Pruebas")
@@ -280,6 +286,10 @@ def realizar_prueba(prueba):
     w.create_rectangle(410,30,590,330, outline="red")
     w.create_rectangle(410,30,590,60, outline="red")
     w.pack()
+    #CREACION VARIABLES
+    empresa = colaempresas.extraerid(prueba.idempresa)
+    punto = empresa.puntosatencion.extraerid(prueba.idpunto)
+    numescritoriosactivos = punto.escritoriosactivos.getlen()
     label = tk.Label(wprueba, text=prueba.nempresa + " - " + prueba.npunto,font=("Britannic Bold",15))
     label.pack()
     label.place(x=135, y=0)
@@ -289,32 +299,53 @@ def realizar_prueba(prueba):
     label1 = tk.Label(wprueba, text="ES TU TURNO:",font=("Britannic Bold",11))
     label1.pack()
     label1.place(x=12, y=62)
-    label2 = tk.Label(wprueba, text="EN ESPERA:",font=("Britannic Bold",11))
+    label2 = tk.Label(wprueba, text="EN ESPERA:" + " (" + str(punto.tiempoclientest())+"min)",font=("Britannic Bold",11))
     label2.pack()
     label2.place(x=412, y=35)
-    #CREACION VARIABLES
-    empresa = colaempresas.extraerid(prueba.idempresa)
-    punto = empresa.puntosatencion.extraerid(prueba.idpunto)
-    numescritoriosactivos = punto.escritoriosactivos.getlen()
+    
     #ESCRITORIOS ACTIVOS VENTANA
     label3 = tk.Label(wprueba, text=numescritoriosactivos,font=("Britannic Bold",11))
     label3.pack()
     label3.place(x=175, y=35)
     #CLIENTES EN ESPERA VENTANA
     numclientes = punto.clientes.getlen()
-    colaclientestemp = Cola()
-    posy = 0
+    pos1y = 0
+    pos2y = 0
+    #ASIGNAR CLIENTES
+    cabezacliente = punto.clientes.cabeza()
+    cabezaescritoriosa = punto.escritoriosactivos.cabeza()
     for i in range(0,numclientes,1):
-        ncliente = punto.clientes.extraer()
-        ncliente.siguiente = None
-        colaclientestemp.insertar(ncliente)
-        labelc = tk.Label(wprueba, text="- "+ncliente.nombre,font=("Britannic Bold",11))
-        labelc.pack()
-        labelc.place(x=412, y=62 + posy)
-        posy += 20
-        pass
-    punto.clientes = colaclientestemp
-    pass
+        if(cabezacliente != None ):
+            trn = colaturnos.extraerid(cabezacliente.id) 
+            if(trn != False):
+                labelc = tk.Label(wprueba, text=trn.cliente.nombre + " al escritorio: " + trn.escritorio.id + "-" + trn.escritorio.nombreEncargado + " ("+str(trn.cliente.tiempoTrans())+"min)",font=("Britannic Bold",13))
+                labelc.pack()
+                labelc.place(x=13, y=62 + pos1y)
+                pos1y += 40
+                if(trn.escritorio.id == cabezaescritoriosa.id):
+                    cabezaescritoriosa = cabezaescritoriosa.siguiente           
+            elif(cabezaescritoriosa != None and cabezaescritoriosa.ocupado == False):
+                turno = Turno(cabezacliente.id, cabezacliente,cabezaescritoriosa)
+                colaturnos.insertar(turno)
+                cliente = copy.deepcopy(cabezacliente)
+                cliente.siguiente = None
+                escritorio = punto.escritorios.extraerid(cabezaescritoriosa.id)
+                escritorio.asignarCliente(cliente)
+                cabezaescritoriosa.ocupado = True
+                labelc = tk.Label(wprueba, text=cabezacliente.nombre + " al escritorio: " + cabezaescritoriosa.id + "-" + cabezaescritoriosa.nombreEncargado + " ("+str(cabezacliente.tiempoTrans())+"min)",font=("Britannic Bold",13))
+                labelc.pack()
+                labelc.place(x=13, y=62 + pos1y)
+                pos1y += 40                
+                cabezaescritoriosa = cabezaescritoriosa.siguiente
+            else:
+                labelc = tk.Label(wprueba, text="- "+cabezacliente.nombre + " ("+str(cabezacliente.tiempoTrans()) + "min)",font=("Britannic Bold",11))
+                labelc.pack()
+                labelc.place(x=412, y=62 + pos2y)
+                pos2y += 20            
+        cabezacliente = cabezacliente.siguiente    
+    
+    
+    
     #BOTONES
     boton0 = tk.Button(
         wprueba,
@@ -334,7 +365,7 @@ def realizar_prueba(prueba):
         bg="#8FA0AC",
         font=myFont,
         text="ATENDER\nCLIENTE",
-        command=partial(atender_cliente,punto,wprueba)
+        command=partial(atender_cliente,punto,prueba,wprueba)
     )
     boton.pack(
         ipadx=10,
@@ -347,7 +378,7 @@ def realizar_prueba(prueba):
         bg="#8FA0AC",
         font=myFont,
         text="SIMULAR\nATENCION",
-        command=partial(simular,punto,wprueba)
+        command=partial(simular,punto,prueba,wprueba)
     )
     boton1.pack(
         ipadx=10,
@@ -360,7 +391,7 @@ def realizar_prueba(prueba):
         bg="#8FA0AC",   
         font=myFont,     
         text="AGREGAR\nCLIENTE",
-        command=partial(agregar_cliente,punto,wprueba)
+        command=partial(agregar_cliente,punto,prueba,empresa,wprueba)
     )
     boton2.pack(
         ipadx=10,
@@ -407,15 +438,137 @@ def realizar_prueba(prueba):
         expand=True
     )
     boton4.place(x=501, y=345, width=97, height=50)
+    if(simu == False):
+        wprueba.destroy()
 def recargar(prueba, ventana):
     ventana.destroy()
-    realizar_prueba(prueba)
-def atender_cliente(punto, ventana):
+    realizar_prueba(prueba,True)
+def atender_cliente(punto,prueba, ventana):
+    ventana.destroy()
+    cliente = punto.atenderCliente()
+    if(cliente != None):
+        turno = colaturnos.extraerid(cliente.id)
+        turno.escritorio.ocupado = False
+    realizar_prueba(prueba,True)
     pass
-def simular(punto, ventana):
+def simular(punto,prueba, ventana):           
+    ventana.destroy()
+    nclientes = punto.clientes.getlen()
+    for i in range(0,nclientes,1):
+        cliente = punto.atenderCliente()
+        if(cliente != None): 
+            turno = colaturnos.extraerid(cliente.id)
+            turno.escritorio.ocupado = False
+        realizar_prueba(prueba,False)
+    realizar_prueba(prueba,True)
+def agregar_cliente(punto,prueba,empresa,ventana):
+    wcrearec = Toplevel(root)
+    wcrearec.title("Agregar_cliente")
+    wcrearec.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wcrearec.grab_set()
+    wcrearec.resizable(False, False)
+    label = tk.Label(wcrearec, text='AGREGAR CLIENTE',font=("Britannic Bold",18))
+    label.pack()
+    label.place(x=170, y=30)
+    #ID
+    lid = tk.Label(wcrearec, text="CUI: ")
+    lid.pack()
+    lid.place(x=70, y=90, height=20)
+    celda = Entry(wcrearec, width=45, fg='black',font=('Arial', 10, 'normal'))
+    celda.place(x=170, y=90, height=20)
+    #Nombre
+    lnombre = tk.Label(wcrearec, text="NOMBRE: ")
+    lnombre.pack()
+    lnombre.place(x=70, y=120, height=20)
+    celda1 = Entry(wcrearec, width=45, fg='black',font=('Arial', 10, 'normal'))
+    celda1.place(x=170, y=120, height=20)   
+    def nuevo_cliente():
+        if(celda.get() != "" and celda1.get() != "" ):
+            cliente = Cliente(celda.get(),celda1.get())
+            punto.agregarCliente(cliente)
+            wcrearec.destroy()
+            agregar_trans(cliente,empresa,prueba)
+            ventana.destroy()
+            pass
+        else:
+            messagebox.showwarning("Advertencia", "Asegurese de llenar los espacios obligatorios para crear un punto de atencion")
+        pass
+    #boton
+    crear = tk.Button(
+        wcrearec,
+        bg="#8FA0AC",
+        font=myFont,
+        text="Crear",
+        command=nuevo_cliente
+    )
+    crear.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    crear.place(x=250, y=340, width=150, height=50)
+    
     pass
-def agregar_cliente(punto,ventana):
-    pass
+def agregar_trans(cliente,empresa,prueba):
+    # Transacciones
+    wcrearec = Toplevel(root)
+    wcrearec.title("Agregar_transaccion")
+    wcrearec.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wcrearec.grab_set()
+    wcrearec.resizable(False, False)
+    label = tk.Label(wcrearec, text='Presione la transaccion para agregar',font=("Britannic Bold",18))
+    label.pack()
+    label.place(x=100, y=30)
+    ntrans = empresa.transacciones.getlen()
+    cabezatrans = empresa.transacciones.cabeza()
+    def agregar(transaccion,cliente):
+        cliente.agregarTransaccion(transaccion.id,1,empresa)
+        label = tk.Label(wcrearec, text='Se agregó una transaccion: '+transaccion.nombre + "    ",font=("Britannic Bold",12))
+        label.pack()
+        label.place(x=50, y=80)
+        pass
+    if(ntrans > 0):
+        posx=0
+        posy=0
+        cont=0
+        for i in range(0,ntrans,1):
+            if(cabezatrans != None):
+                boton = tk.Button(
+                    wcrearec,
+                    font=myFont,
+                    text=cabezatrans.nombre + ": " + cabezatrans.minutos + " min",
+                    command=partial(agregar,cabezatrans,cliente)
+                )
+                boton.pack(
+                    ipadx=10,
+                    ipady=10,
+                    expand=True
+                )
+                boton.place(x=50 + posx, y=150 + posy, width=150, height=50)           
+                cont+=1
+                posx += 160
+                if(cont == 3 or cont == 6):
+                    posy += 60
+                    posx = 0    
+                pass
+            cabezatrans = cabezatrans.siguiente
+    def guardar(prueba,ventana):
+        ventana.destroy()
+        realizar_prueba(prueba,True)        
+        pass
+    crear = tk.Button(
+        wcrearec,
+        bg="#8FA0AC",
+        font=myFont,
+        text="Guardar",
+        command=partial(guardar,prueba,wcrearec)
+    )
+    crear.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    crear.place(x=250, y=340, width=150, height=50)
 def ver_punto(punto):
     pass
 def ver_escritorios(punto):
