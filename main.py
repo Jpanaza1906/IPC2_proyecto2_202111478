@@ -6,6 +6,7 @@ Introducción a la programación 2
 """
 import copy
 from functools import partial
+from operator import ne
 import tkinter as tk
 from tkinter import DISABLED, NORMAL, Toplevel
 from tkinter import messagebox
@@ -450,7 +451,6 @@ def atender_cliente(punto,prueba, ventana):
         turno = colaturnos.extraerid(cliente.id)
         turno.escritorio.ocupado = False
     realizar_prueba(prueba,True)
-    pass
 def simular(punto,prueba, ventana):           
     ventana.destroy()
     nclientes = punto.clientes.getlen()
@@ -507,8 +507,7 @@ def agregar_cliente(punto,prueba,empresa,ventana):
         expand=True
     )
     crear.place(x=250, y=340, width=150, height=50)
-    
-    pass
+
 def agregar_trans(cliente,empresa,prueba):
     # Transacciones
     wcrearec = Toplevel(root)
@@ -570,8 +569,21 @@ def agregar_trans(cliente,empresa,prueba):
     )
     crear.place(x=250, y=340, width=150, height=50)
 def ver_punto(punto):
+    r1 = punto.tiempopromedio()
+    r2 = punto.tiempoesperapromedio()
+    r3 = punto.tiempoesperamax()
+    r4 = punto.tiempoesperamin()
+    r5= punto.tiempoatencionmax()
+    r6 = punto.tiempoatencionmin()
     pass
 def ver_escritorios(punto):
+    cabezaescritorios = punto.escritorios.cabeza()
+    nescritorios = punto.escritorios.getlen()
+    for i in range(0,nescritorios,1):
+        r1 = cabezaescritorios.tiempoPromedio()
+        r2 = cabezaescritorios.tiempomax()
+        r3 = cabezaescritorios.tiempomin()
+        cabezaescritorios = cabezaescritorios.siguiente
     pass
 
 def configurar_empresa(empresa):
