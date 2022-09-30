@@ -46,38 +46,36 @@ class Cola:
                 temp = temp.siguiente
             return cont
         else:
-            return 0     
-        pass
-    """def get_tiempoespera(self):
-        temp = self.primero
-        tiempot = temp.tiempo
-        while(temp.siguiente != None):            
-            temp = temp.siguiente
-            tiempot += temp.tiempo
-        return str(tiempot)
-    def get_ordenespendientes(self):
-        c = Console()
-        temp = self.primero
-        if self.primero != None:
-            c.print("[bold]|[cyan]Nombre[/]|[green]Descripcion[/]|[white]Tiempo|[/][/]")
-            c.print("[cyan]" + temp.nombre + " [/]" + "[green]" + temp.descripcion + " [/]" + "[white]" + str(temp.tiempo) + " min[/]")
-            while temp.siguiente != None:
-                temp = temp.siguiente
-                c.print("[cyan]" + temp.nombre + " [/]" + "[green]" + temp.descripcion + " [/]" + "[white]" + str(temp.tiempo) + " min[/]")
-        else:
-            c.print("No hay ordenes pendientes", style="red on white")
-    def report(self):
+            return 0 
+    def reporte(self):
         aux = self.primero
         text = ""
         text += "rankdir=LB; \n node[shape=egg, style = filled, color=khaki, fontname=\"Century Gothic\"];"
-        text += "labelloc = \"t;\" label = \" Compras\" ; \n"
+        text += "labelloc = \"t;\" label = \" Escritorios activos\" ; \n"
         while aux:
-            text += "x" + str(aux.nombre) + "[dir=both label=\"Nombre = " + str(aux.nombre) + "\\n Descripcion = " + aux.descripcion + "\\n Tiempo = " + str(aux.tiempo) + "\"]"
+            text += "x" + str(aux.id) + "[dir=both label=\"id = " + str(aux.id) + "\\n nombre = " + aux.nombreEncargado + "\\n tipo = " + str(aux.identificacionEscritorio) + "\"]"
             if(aux.siguiente != None):
-                text += "x" + str(aux.nombre) + "-> x" + str(aux.siguiente.nombre) + "\n"
+                text += "x" + str(aux.id) + "-> x" + str(aux.siguiente.id) + "\n"
                 aux = aux.siguiente
             if(aux != self.primero):
-                text += "x" + str(aux.nombre) + "[dir=both label=\"Nombre = " + str(aux.nombre) + "\\n Descripcion = " + aux.descripcion + "\\n Tiempo = " + str(aux.tiempo) + "\"]"                
+                text += "x" + str(aux.id) + "[dir=both label=\"id = " + str(aux.id) + "\\n nombre = " + aux.nombreEncargado + "\\n tipo = " + str(aux.identificacionEscritorio) + "\"]"                
+            else:
+                break
+            if(aux.siguiente == None):                
+                break
+        return text
+    def reportec(self):
+        aux = self.primero
+        text = ""
+        text += "rankdir=LB; \n node[shape=egg, style = filled, color=khaki, fontname=\"Century Gothic\"];"
+        text += "labelloc = \"t;\" label = \" Clientes en cola\" ; \n"
+        while aux:
+            text += "x" + str(aux.id) + "[dir=both label=\"id = " + str(aux.id) + "\\n nombre = " + aux.nombre + "\\n tiempo = " + str(aux.tiempoTrans()) +" min" + "\"]"
+            if(aux.siguiente != None):
+                text += "x" + str(aux.id) + "-> x" + str(aux.siguiente.id) + "\n"
+                aux = aux.siguiente
+            if(aux != self.primero):
+                text += "x" + str(aux.id) + "[dir=both label=\"id = " + str(aux.id) + "\\n nombre = " + aux.nombre + "\\n tiempo = " + str(aux.tiempoTrans()) +" min"  + "\"]"                
             else:
                 break
             if(aux.siguiente == None):                
@@ -86,11 +84,21 @@ class Cola:
     def crearReporte(self):
         self.contador += 1
         contenido = "digraph G{\n\n"
-        r = open("reporte.txt", "w")
-        contenido += str(self.report())
+        r = open("reportee.txt", "w")
+        contenido += str(self.reporte())
         contenido += "\n}"
         r.write(contenido)
         r.close()
-        os.system("dot -Tpng reporte.txt -o reporte"+ str(self.contador) +".png")
-        os.system("dot -Tpdf reporte.txt -o reporte"+ str(self.contador) +".pdf")
-    """
+        os.system("dot -Tpng reportee.txt -o reportee"+ str(self.contador) +".png")
+        os.system("dot -Tpdf reportee.txt -o reportee"+ str(self.contador) +".pdf")
+    def crearReportec(self):
+        self.contador += 1
+        contenido = "digraph G{\n\n"
+        r = open("reportec.txt", "w")
+        contenido += str(self.reportec())
+        contenido += "\n}"
+        r.write(contenido)
+        r.close()
+        os.system("dot -Tpng reportec.txt -o reportec"+ str(self.contador) +".png")
+        os.system("dot -Tpdf reportec.txt -o reportec"+ str(self.contador) +".pdf")
+    

@@ -38,7 +38,7 @@ screen_height = root.winfo_screenheight()
 center_x = int(screen_width/2 - window_width/2)
 center_y = int(screen_height/2 - window_height/2)
 root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
-myFont = font.Font(family="Britannic Bold", size=10,weight="normal",)
+myFont = font.Font(family="Britannic Bold", size=9,weight="normal",)
 label = tk.Label(root, text='SOLUCIONES GUATEMALTECAS, S.A',font=("Britannic Bold",18))
 label.pack()
 label.place(x=130, y=30)
@@ -275,6 +275,7 @@ def mostrar_pruebas():
     pass
 def realizar_prueba(prueba,simu):
     global colaturnos
+    turno = colaturnos.cabeza()
     #CONFIGURACION VENTANA
     wprueba = Toplevel(root)
     wprueba.title("Pruebas")
@@ -290,7 +291,11 @@ def realizar_prueba(prueba,simu):
     #CREACION VARIABLES
     empresa = colaempresas.extraerid(prueba.idempresa)
     punto = empresa.puntosatencion.extraerid(prueba.idpunto)
-    numescritoriosactivos = punto.escritoriosactivos.getlen()
+    numescritoriosactivos = punto.escritoriosactivos.getlen()    
+    if(turno != None):
+        if(turno.idpunto != punto.id):
+            colaturnos = Cola()
+            punto.desocuparEscritorios()
     label = tk.Label(wprueba, text=prueba.nempresa + " - " + prueba.npunto,font=("Britannic Bold",15))
     label.pack()
     label.place(x=135, y=0)
@@ -319,27 +324,27 @@ def realizar_prueba(prueba,simu):
         if(cabezacliente != None ):
             trn = colaturnos.extraerid(cabezacliente.id) 
             if(trn != False):
-                labelc = tk.Label(wprueba, text=trn.cliente.nombre + " al escritorio: " + trn.escritorio.id + "-" + trn.escritorio.nombreEncargado + " ("+str(trn.cliente.tiempoTrans())+"min)",font=("Britannic Bold",13))
+                labelc = tk.Label(wprueba, text=trn.cliente.nombre + " al escritorio: " + trn.escritorio.id + "-" + trn.escritorio.nombreEncargado + " ("+str(trn.cliente.tiempoTrans())+"min)",font=("Britannic Bold",10))
                 labelc.pack()
                 labelc.place(x=13, y=62 + pos1y)
                 pos1y += 40
                 if(trn.escritorio.id == cabezaescritoriosa.id):
                     cabezaescritoriosa = cabezaescritoriosa.siguiente           
             elif(cabezaescritoriosa != None and cabezaescritoriosa.ocupado == False):
-                turno = Turno(cabezacliente.id, cabezacliente,cabezaescritoriosa)
+                turno = Turno(cabezacliente.id,punto.id, cabezacliente,cabezaescritoriosa)
                 colaturnos.insertar(turno)
                 cliente = copy.deepcopy(cabezacliente)
                 cliente.siguiente = None
                 escritorio = punto.escritorios.extraerid(cabezaescritoriosa.id)
                 escritorio.asignarCliente(cliente)
                 cabezaescritoriosa.ocupado = True
-                labelc = tk.Label(wprueba, text=cabezacliente.nombre + " al escritorio: " + cabezaescritoriosa.id + "-" + cabezaescritoriosa.nombreEncargado + " ("+str(cabezacliente.tiempoTrans())+"min)",font=("Britannic Bold",13))
+                labelc = tk.Label(wprueba, text=cabezacliente.nombre + " al escritorio: " + cabezaescritoriosa.id + "-" + cabezaescritoriosa.nombreEncargado + " ("+str(cabezacliente.tiempoTrans())+"min)",font=("Britannic Bold",10))
                 labelc.pack()
                 labelc.place(x=13, y=62 + pos1y)
                 pos1y += 40                
                 cabezaescritoriosa = cabezaescritoriosa.siguiente
             else:
-                labelc = tk.Label(wprueba, text="- "+cabezacliente.nombre + " ("+str(cabezacliente.tiempoTrans()) + "min)",font=("Britannic Bold",11))
+                labelc = tk.Label(wprueba, text="- "+cabezacliente.nombre + " ("+str(cabezacliente.tiempoTrans()) + "min)",font=("Britannic Bold",10))
                 labelc.pack()
                 labelc.place(x=412, y=62 + pos2y)
                 pos2y += 20            
@@ -451,7 +456,8 @@ def atender_cliente(punto,prueba, ventana):
         turno = colaturnos.extraerid(cliente.id)
         turno.escritorio.ocupado = False
     realizar_prueba(prueba,True)
-def simular(punto,prueba, ventana):           
+def simular(punto,prueba, ventana):  
+    global colaturnos         
     ventana.destroy()
     nclientes = punto.clientes.getlen()
     for i in range(0,nclientes,1):
@@ -459,7 +465,7 @@ def simular(punto,prueba, ventana):
         if(cliente != None): 
             turno = colaturnos.extraerid(cliente.id)
             turno.escritorio.ocupado = False
-        realizar_prueba(prueba,False)
+        realizar_prueba(prueba,False) 
     realizar_prueba(prueba,True)
 def agregar_cliente(punto,prueba,empresa,ventana):
     wcrearec = Toplevel(root)
@@ -543,10 +549,10 @@ def agregar_trans(cliente,empresa,prueba):
                     ipady=10,
                     expand=True
                 )
-                boton.place(x=50 + posx, y=150 + posy, width=150, height=50)           
+                boton.place(x=50 + posx, y=150 + posy, width=250, height=50)           
                 cont+=1
-                posx += 160
-                if(cont == 3 or cont == 6):
+                posx += 260
+                if(cont == 2 or cont == 4 or cont == 6):
                     posy += 60
                     posx = 0    
                 pass
@@ -574,9 +580,9 @@ def ver_punto(punto):
     wpuntos.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
     wpuntos.grab_set()
     wpuntos.resizable(False, False)  
-    label = tk.Label(wpuntos, text=punto.nombre + " - " + punto.direccion,font=("Britannic Bold",18))
+    label = tk.Label(wpuntos, text=punto.nombre + " - " + punto.direccion,font=("Britannic Bold",16))
     label.pack()
-    label.place(x=150, y=20)
+    label.place(x=100, y=20)
     label = tk.Label(wpuntos, text="Escritorios activos: ",font=("Britannic Bold",13))
     label.pack()
     label.place(x=30, y=80)
@@ -1109,10 +1115,10 @@ def ver_transacciones(empresa):
                 ipady=10,
                 expand=True
             )
-            boton.place(x=50 + posx, y=100 + posy, width=150, height=50)           
+            boton.place(x=50 + posx, y=100 + posy, width=250, height=50)           
             cont+=1
-            posx += 160
-            if(cont == 3 or cont == 6):
+            posx += 260
+            if(cont == 2 or cont == 4 or cont == 6):
                 posy += 60
                 posx = 0    
         empresa.transacciones = colatranstemp
