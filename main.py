@@ -569,23 +569,141 @@ def agregar_trans(cliente,empresa,prueba):
     )
     crear.place(x=250, y=340, width=150, height=50)
 def ver_punto(punto):
-    r1 = punto.tiempopromedio()
-    r2 = punto.tiempoesperapromedio()
-    r3 = punto.tiempoesperamax()
-    r4 = punto.tiempoesperamin()
-    r5= punto.tiempoatencionmax()
-    r6 = punto.tiempoatencionmin()
-    pass
+    wpuntos = Toplevel(root)
+    wpuntos.title("Puntos")
+    wpuntos.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wpuntos.grab_set()
+    wpuntos.resizable(False, False)  
+    label = tk.Label(wpuntos, text=punto.nombre + " - " + punto.direccion,font=("Britannic Bold",18))
+    label.pack()
+    label.place(x=150, y=20)
+    label = tk.Label(wpuntos, text="Escritorios activos: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=80)
+    label = tk.Label(wpuntos, text=str(punto.escritoriosactivos.getlen()),font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=200, y=80)
+    label = tk.Label(wpuntos, text="Escritorios inactivos: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=110)
+    label = tk.Label(wpuntos, text=str(punto.escritorios.getlen() - punto.escritoriosactivos.getlen()),font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=200, y=110)
+    label = tk.Label(wpuntos, text="Clientes en espera: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=140)
+    label = tk.Label(wpuntos, text=punto.clientes.getlen(),font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=200, y=140)
+    r1 = str(punto.tiempopromedio())
+    r2 = str(punto.tiempoesperapromedio())
+    r3 = str(punto.tiempoesperamax())
+    r4 = str(punto.tiempoesperamin())
+    r5 = str(punto.tiempoatencionmax())
+    r6 = str(punto.tiempoatencionmin())
+    label = tk.Label(wpuntos, text="Tiempo promedio espera: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=170)
+    label = tk.Label(wpuntos, text=r2 + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=230, y=170)
+    label = tk.Label(wpuntos, text="Tiempo máximo espera: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=200)
+    label = tk.Label(wpuntos, text=r3 + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=230, y=200)
+    label = tk.Label(wpuntos, text="Tiempo mínimo espera: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=230)
+    label = tk.Label(wpuntos, text=r4 + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=230, y=230)
+    label = tk.Label(wpuntos, text="Tiempo promedio atención: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=260)
+    label = tk.Label(wpuntos, text=r1 + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=235, y=260)
+    label = tk.Label(wpuntos, text="Tiempo máximo atención: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=290)
+    label = tk.Label(wpuntos, text=r5 + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=230, y=290)
+    label = tk.Label(wpuntos, text="Tiempo mínimo atención: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=320)
+    label = tk.Label(wpuntos, text=r6 + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=230, y=320)
+
 def ver_escritorios(punto):
+    wescritorios = Toplevel(root)
+    wescritorios.title("Escritorios")
+    wescritorios.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wescritorios.grab_set()
+    wescritorios.resizable(False, False)  
+    label = tk.Label(wescritorios, text='SELECCIONE UN ESCRITORIO',font=("Britannic Bold",18))
+    label.pack()
+    label.place(x=140, y=30)  
     cabezaescritorios = punto.escritorios.cabeza()
     nescritorios = punto.escritorios.getlen()
+    posx=0
+    posy=0
+    cont=0
     for i in range(0,nescritorios,1):
-        r1 = cabezaescritorios.tiempoPromedio()
-        r2 = cabezaescritorios.tiempomax()
-        r3 = cabezaescritorios.tiempomin()
+        boton = tk.Button(
+            wescritorios,
+            font=myFont,
+            text=cabezaescritorios.id + "-"+ cabezaescritorios.nombreEncargado,
+            command=partial(ver_escri,cabezaescritorios)
+        )
+        boton.pack(
+            ipadx=10,
+            ipady=10,
+            expand=True
+        )
+        boton.place(x=50 + posx, y=100 + posy, width=150, height=50)
+        if cabezaescritorios.estado == False:
+            boton.configure(bg="#E06D6D")
+        else:
+            boton.configure(bg="#97E06D")  
+        cont+=1
+        posx += 160
+        if(cont == 3 or cont == 6):
+            posy += 60
+            posx = 0 
         cabezaescritorios = cabezaescritorios.siguiente
     pass
-
+def ver_escri(escritorio):
+    wpuntos = Toplevel(root)
+    wpuntos.title("Escritorios")
+    wpuntos.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+    wpuntos.grab_set()
+    wpuntos.resizable(False, False)  
+    label = tk.Label(wpuntos, text=escritorio.id + " - " + escritorio.nombreEncargado,font=("Britannic Bold",18))
+    label.pack()
+    label.place(x=190, y=20)
+    label = tk.Label(wpuntos, text="Tiempo promedio atención: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=80)
+    label = tk.Label(wpuntos, text=str(escritorio.tiempoPromedio()) + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=240, y=80)
+    label = tk.Label(wpuntos, text="Tiempo máximo atención: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=110)
+    label = tk.Label(wpuntos, text=str(escritorio.tiempomax()) + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=240, y=110)
+    label = tk.Label(wpuntos, text="Tiempo mínimo atención: ",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=30, y=140)
+    label = tk.Label(wpuntos, text=str(escritorio.tiempomin()) + " min",font=("Britannic Bold",13))
+    label.pack()
+    label.place(x=240, y=140)
+    pass
 def configurar_empresa(empresa):
     wpuntos = Toplevel(root)
     wpuntos.title("Puntos")

@@ -24,7 +24,7 @@ class Escritorio:
                 ttotal += cabezaclientes.tiempoTrans()
                 cabezaclientes = cabezaclientes.siguiente
             promedio = ttotal/clientetotal
-            return promedio
+            return round(promedio,2)
         else:
             return 0
 
