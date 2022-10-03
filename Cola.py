@@ -47,6 +47,7 @@ class Cola:
             return cont
         else:
             return 0 
+    
     def reporte(self):
         aux = self.primero
         text = ""
@@ -81,24 +82,24 @@ class Cola:
             if(aux.siguiente == None):                
                 break
         return text
-    def crearReporte(self):
+    def crearReporte(self, npunto):
         self.contador += 1
         contenido = "digraph G{\n\n"
-        r = open("reportee.txt", "w")
+        r = open("reporte"+ npunto +".txt", "w")
         contenido += str(self.reporte())
         contenido += "\n}"
         r.write(contenido)
         r.close()
-        os.system("dot -Tpng reportee.txt -o reportee"+ str(self.contador) +".png")
-        os.system("dot -Tpdf reportee.txt -o reportee"+ str(self.contador) +".pdf")
-    def crearReportec(self):
+        os.system("dot -Tpng reporte"+ npunto +".txt -o reporte"+ npunto + str(self.contador) +".png")
+        os.system("dot -Tpdf reporte"+ npunto +".txt -o reporte"+ npunto + str(self.contador) +".pdf")
+    def crearReportec(self,npunto):
         self.contador += 1
         contenido = "digraph G{\n\n"
-        r = open("reportec.txt", "w")
+        r = open("reporte"+ npunto +".txt", "w")
         contenido += str(self.reportec())
         contenido += "\n}"
         r.write(contenido)
         r.close()
-        os.system("dot -Tpng reportec.txt -o reportec"+ str(self.contador) +".png")
-        os.system("dot -Tpdf reportec.txt -o reportec"+ str(self.contador) +".pdf")
-    
+        os.system("dot -Tpng reporte"+ npunto +".txt -o reporte"+ npunto + str(self.contador) +".png")
+        os.system("dot -Tpdf reporte"+ npunto +".txt -o reporte"+ npunto + str(self.contador) +".pdf")
+   

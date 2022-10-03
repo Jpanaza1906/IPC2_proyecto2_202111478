@@ -841,7 +841,7 @@ def configurar_puntos(punto):
         ipady=10,
         expand=True
     )
-    boton.place(x=120, y=300, width=150, height=50) 
+    boton.place(x=30, y=300, width=150, height=50) 
     boton1 = tk.Button(
         wescritorios,
         bg="#8FA0AC",
@@ -854,7 +854,27 @@ def configurar_puntos(punto):
         ipady=10,
         expand=True
     )
-    boton1.place(x=330, y=300, width=150, height=50) 
+    boton1.place(x=200, y=300, width=150, height=50) 
+    nempresas = colaempresas.getlen()
+    cabezaempresa = colaempresas.cabeza()
+    for i in range(0,nempresas):
+        if(cabezaempresa.puntosatencion.extraerid(punto.id) != False):
+            break
+        cabezaempresa = cabezaempresa.siguiente
+    nconfig = Config("1",cabezaempresa.id,punto.id,cabezaempresa.nombre,punto.nombre)
+    boton2 = tk.Button(
+        wescritorios,
+        bg="#8FA0AC",
+        font=myFont,
+        text="HACER PRUEBA",
+        command=partial(realizar_prueba,nconfig,True)
+    )
+    boton2.pack(
+        ipadx=10,
+        ipady=10,
+        expand=True
+    )
+    boton2.place(x=370, y=300, width=150, height=50)
     pass
 def configurar_escritorios(escritorio,punto,ventana):    
     if escritorio.estado == False:

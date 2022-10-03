@@ -24,20 +24,20 @@ class PuntoAtencion:
             cabezaescritorios = cabezaescritorios.siguiente
     def activarEscritorio(self, escritorio):
         self.escritoriosactivos.insertar(escritorio)
-        self.escritoriosactivos.crearReporte()
+        self.escritoriosactivos.crearReporte(self.nombre.replace(" ", "") + "es")
     def desactivarEscritorio(self):
         escritorio = self.escritoriosactivos.extraer()
         if(escritorio != None):
             escritoriofdesactivar = self.escritorios.extraerid(escritorio.id)
             escritoriofdesactivar.estado = False
-            self.escritoriosactivos.crearReporte()
+            self.escritoriosactivos.crearReporte(self.nombre.replace(" ", "") + "es")
             return True
         return False
             
     def agregarCliente(self,cliente):
         if(self.clientes.extraerid(cliente.id) == False):
             self.clientes.insertar(cliente)
-            self.clientes.crearReportec()
+            self.clientes.crearReportec(self.nombre.replace(" ", ""))
         else:
             return False
     def atenderCliente(self):
@@ -45,7 +45,7 @@ class PuntoAtencion:
             clienteatendido = self.clientes.extraer()
             clienteatendido.siguiente = None
             self.historialclientes.insertar(clienteatendido)
-            self.clientes.crearReportec()
+            self.clientes.crearReportec(self.nombre.replace(" ", ""))
             return clienteatendido
         return None
     def tiempoclientest(self):
